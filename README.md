@@ -250,7 +250,7 @@ cd backend
 npm install
 sls deploy -v
 ```
-
+cd
 ## Frontend
 
 To run a client application first edit the `client/src/config.ts` file to set correct parameters. And then run the following commands:
