@@ -5,6 +5,9 @@ import * as middy from 'middy'
 import { cors, httpErrorHandler } from 'middy/middlewares'
 import { getUserId } from '../utils'
 import { createAttachmentPresignedUrl } from '../../helpers/businessLogic/createAttachmentPresignedUrl'
+import { createLogger } from '../../utils/logger'
+
+const logger = createLogger('Lambda-http')
 
 export const handler = middy(
   async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
@@ -14,6 +17,8 @@ export const handler = middy(
     const userId = getUserId(event);
     
     const uploadUrl = await createAttachmentPresignedUrl(todoId, userId);
+
+    logger.info(`Created presignedAttachmentUrl successfully for user ${userId}`);
     return {
       statusCode: 200,
       headers: {

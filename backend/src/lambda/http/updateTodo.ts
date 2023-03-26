@@ -6,6 +6,9 @@ import { cors, httpErrorHandler } from 'middy/middlewares'
 import { UpdateTodoRequest } from '../../requests/UpdateTodoRequest'
 import { getUserId } from '../utils'
 import { updateTodo } from '../../helpers/businessLogic/updateTodo'
+import { createLogger } from '../../utils/logger'
+
+const logger = createLogger('Lambda-http')
 
 export const handler = middy(
   async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
@@ -15,6 +18,8 @@ export const handler = middy(
     const userId = getUserId(event);
 
     const updatedTodoItem = await updateTodo(userId, todoId, updatedTodo);
+
+    logger.info(`Updated todo successfully for user ${userId}`);
 
     return {
       statusCode: 200,

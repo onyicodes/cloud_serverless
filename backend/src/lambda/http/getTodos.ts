@@ -7,6 +7,9 @@ import { cors, httpErrorHandler } from 'middy/middlewares'
 //import { getTodosForUser as getTodosForUser } from '../../businessLogic/todos'
 import { getUserId } from '../utils';
 import { getTodosForUser } from '../../helpers/businessLogic/getTodos';
+import { createLogger } from '../../utils/logger';
+
+const logger = createLogger('Lambda-http')
 
 // TODO: Get all TODO items for a current user - done
 export const handler = middy(
@@ -14,6 +17,8 @@ export const handler = middy(
     // Write your code here
     const userId = getUserId(event);
     const todos = await getTodosForUser(userId);
+
+    logger.info(`Fetched todos successfully for user ${userId}`);
 
     return {
       statusCode: 200,

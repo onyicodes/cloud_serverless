@@ -1,7 +1,10 @@
 import * as AWS from 'aws-sdk'
 import * as AWSXRay from 'aws-xray-sdk'
+import { createLogger } from '../../utils/logger';
 
 const XAWS = AWSXRay.captureAWS(AWS)
+
+const logger = createLogger('TodosAccess')
 
 export class AttachmentUtils {
     constructor(
@@ -11,6 +14,7 @@ export class AttachmentUtils {
     ) {}
 
     async createAttachmentPresignedUrl(todoId: string): Promise<string>{
+        logger.info(`Getting signedUrl for todo: ${todoId}`);
         
         return this.s3.getSignedUrl('putObject', {
             Bucket: this.attachmentS3Bucket,

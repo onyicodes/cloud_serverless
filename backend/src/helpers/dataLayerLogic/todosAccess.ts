@@ -32,15 +32,15 @@ export class TodosAccess {
     async getTodosForUSer(userId: string): Promise<TodoItem[]> {
         logger.info(`Fetching todos for user ${userId}`);
 
-        const result =  await this.docClient.query({
+        const response =  await this.docClient.query({
             TableName: this.todosTableName,
             KeyConditionExpression: "userId = :userId",
             ExpressionAttributeValues: {
                 ":userId": userId
             }}).promise();
 
-        logger.info(`Completed query request for user ${userId} with result ${result}`);
-        const items = result.Items
+        logger.info(`Completed query request for user ${userId} with result ${response}`);
+        const items = response.Items
         return items as TodoItem[];
     }
 
@@ -66,14 +66,14 @@ export class TodosAccess {
             },
             ReturnValues: "ALL_NEW"
         }
-        const result =  await this.docClient.update(params).promise();
-        const item = result.Attributes;
+        const response =  await this.docClient.update(params).promise();
+        const item = response.Attributes;
         return item as TodoItem;
     }
 
     async updateAttachmentUrl(todoId: string, userId: string): Promise<TodoItem>{
 
-        console.log('Updating attachment url')
+        console.log('Updating file attachment url')
     
         const attachmentUrl: string = `https://${this.attachmentS3Bucket}.s3.amazonaws.com/${todoId}`
     
@@ -93,23 +93,24 @@ export class TodosAccess {
             ReturnValues: "ALL_NEW"
         }
     
-        const result = await this.docClient.update(params).promise()
-        const item = result.Attributes
+        const response = await this.docClient.update(params).promise()
+        const item = response.Attributes
         return item as TodoItem
     }
 
     async deleteTodo(userId: string, todoId: string): Promise<TodoItem> {
-        logger.info(`Deleting todo ${todoId}`);
+        logger.info(`Deleting todo with todoId: ${todoId}`);
 
         
-        const result =  await this.docClient.delete({
+        const response =  await this.docClient.delete({
             TableName: this.todosTableName,
             Key: {
                 userId,
                 todoId
             }
         }).promise();
-        const item = result.Attributes;
+        const item = response.Attributes;
+        logger.info(`todo deleted successfully`);
         return item as TodoItem;
     }
 }

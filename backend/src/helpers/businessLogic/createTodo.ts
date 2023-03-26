@@ -6,7 +6,7 @@ import { TodosAccess } from '../dataLayerLogic/todosAccess';
 import { createLogger } from '../../utils/logger';
 
 const todosAccess = new TodosAccess();
-const logger = createLogger('businessLogic')
+const logger = createLogger('businessLogic-createTodo')
 
 export async function createTodo(userId: string, todo: CreateTodoRequest): Promise<TodoItem> {
     const todoId = uuid.v4();
@@ -21,6 +21,7 @@ export async function createTodo(userId: string, todo: CreateTodoRequest): Promi
         name: todo.name,
         dueDate: todo.dueDate
     })
+    
    } catch(e){
     logger.info(`An error occurred ${e} creating todo for user ${todoId}`);
    }
