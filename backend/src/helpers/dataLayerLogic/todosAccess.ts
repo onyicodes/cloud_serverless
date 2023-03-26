@@ -11,8 +11,6 @@ const XAWS = AWSXRay.captureAWS(AWS)
 
 const logger = createLogger('TodosAccess')
 
-// TODO: Implement the dataLayer logic
-
 export class TodosAccess {
     constructor(
         private readonly docClient: DocumentClient = createDynamoDBClient(),
@@ -23,33 +21,31 @@ export class TodosAccess {
     async createTodo(todo: TodoItem): Promise<TodoItem> {
         logger.info(`Creating todo new ${todo.todoId}`);
 
-        let params = {
+        await this.docClient.put({
             TableName: this.todosTableName,
             Item: todo
-        }
-        await this.docClient.put(params).promise()
+        }).promise()
         console.log(`details of todo created: ${todo}`);
         return todo;
     }
 
     async getTodosForUSer(userId: string): Promise<TodoItem[]> {
-        logger.info(`Getting all todos for user ${userId}`);
+        logger.info(`Fetching todos for user ${userId}`);
 
-        let params = {
+        const result =  await this.docClient.query({
             TableName: this.todosTableName,
             KeyConditionExpression: "userId = :userId",
             ExpressionAttributeValues: {
                 ":userId": userId
-            }
-        }
-        const result =  await this.docClient.query(params).promise();
+            }}).promise();
+
         logger.info(`Completed query request for user ${userId} with result ${result}`);
         const items = result.Items
         return items as TodoItem[];
     }
 
     async updateTodo(userId: string, todoId: string, updatedTodo: TodoUpdate): Promise<TodoItem> {
-        logger.info(`Updating todo ${todoId}`);
+        logger.info(`Updating todo content ${todoId}`);
 
         let params = {
             TableName: this.todosTableName,
@@ -105,14 +101,14 @@ export class TodosAccess {
     async deleteTodo(userId: string, todoId: string): Promise<TodoItem> {
         logger.info(`Deleting todo ${todoId}`);
 
-        let params = {
+        
+        const result =  await this.docClient.delete({
             TableName: this.todosTableName,
             Key: {
                 userId,
                 todoId
             }
-        }
-        const result =  await this.docClient.delete(params).promise();
+        }).promise();
         const item = result.Attributes;
         return item as TodoItem;
     }

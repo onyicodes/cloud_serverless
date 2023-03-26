@@ -3,7 +3,6 @@ import * as AWSXRay from 'aws-xray-sdk'
 
 const XAWS = AWSXRay.captureAWS(AWS)
 
-// TODO: Implement the fileStogare logic
 export class AttachmentUtils {
     constructor(
         private readonly s3: AWS.S3 = createS3Client(),
@@ -12,12 +11,12 @@ export class AttachmentUtils {
     ) {}
 
     async createAttachmentPresignedUrl(todoId: string): Promise<string>{
-        const params = {
+        
+        return this.s3.getSignedUrl('putObject', {
             Bucket: this.attachmentS3Bucket,
             Key: todoId,
             Expires: this.s3SignedUrlExpiration
-        }
-        return this.s3.getSignedUrl('putObject', params)
+        })
     }
 
 }
