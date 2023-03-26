@@ -9,10 +9,12 @@ import { JwtPayload } from '../../auth/JwtPayload'
 
 const logger = createLogger('auth')
 
+let signingKeys: { kid: string; publicKey: string }[];
+
 // TODO: Provide a URL that can be used to download a certificate that can be used
 // to verify JWT token signature.
 // To get this URL you need to go to an Auth0 page -> Show Advanced Settings -> Endpoints -> JSON Web Key Set
-const jwksUrl = '...'
+const jwksUrl = process.env.JWKSURL
 
 export const handler = async (
   event: CustomAuthorizerEvent
@@ -61,7 +63,9 @@ async function verifyToken(authHeader: string): Promise<JwtPayload> {
   // TODO: Implement token verification
   // You should implement it similarly to how it was implemented for the exercise for the lesson 5
   // You can read more about how to do this here: https://auth0.com/blog/navigating-rs256-and-jwks/
-  return undefined
+  const secret: string = await getSecret(jwt.header.kid || "");
+  verify(token, secret, { algorithms: ["RS256"] });
+  return jwt.payload;
 }
 
 function getToken(authHeader: string): string {
@@ -75,3 +79,44 @@ function getToken(authHeader: string): string {
 
   return token
 }
+
+async function getSecret(kid: string): Promise<string> {
+  const signingKey = (await getSigningKeys()).find((key) => key.kid === kid);
+  if (!signingKey) {
+    throw new Error("Signing key not found");
+  }
+  return signingKey.publicKey;
+}
+
+
+async function getSigningKeys() {
+  if(signingKeys) return signingKeys;
+
+  
+    const keys = await Axios.get(jwksUrl).then((res) => res.data.keys);
+
+    return  signingKeys = keys
+      .filter(
+        (key: any) =>
+          key.use === "sig" && // JWK property `use` determines the JWK is for signing
+          key.kty === "RSA" && // We are only supporting RSA (RS256)
+          key.kid && // The `kid` must be present to be useful for later
+          ((key.x5c && key.x5c.length) || (key.n && key.e)) // Has useful public keys
+      )
+      .map((key: any) => {
+        return { kid: key.kid, publicKey: certToPEM(key.x5c[0]) };
+      });
+  
+
+}
+
+function certToPEM(cert: string) {
+  const match = cert.match(/.{1,64}/g);
+  if (match) {
+    cert = match.join("\n");
+    cert = `-----BEGIN CERTIFICATE-----\n${cert}\n-----END CERTIFICATE-----\n`;
+  }
+  return cert;
+}
+
+

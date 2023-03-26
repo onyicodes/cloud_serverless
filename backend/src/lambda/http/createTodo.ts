@@ -4,7 +4,10 @@ import * as middy from 'middy'
 import { cors } from 'middy/middlewares'
 import { CreateTodoRequest } from '../../requests/CreateTodoRequest'
 import { getUserId } from '../utils';
-import { createTodo } from '../../businessLogic/todos'
+import { createTodo } from '../../helpers/businessLogic/createTodo'
+import { createLogger } from '../../utils/logger'
+
+const logger = createLogger('businessLogic')
 
 export const handler = middy(
   async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
@@ -12,10 +15,16 @@ export const handler = middy(
     // TODO: Implement creating a new TODO item
 
     const userId = getUserId(event);
-    const todo = createTodo(userId, newTodo)
+    const todo = await createTodo(userId, newTodo)
+
+    logger.info(`Created todo successfully for user ${userId}`);
 
     return {
       statusCode: 201,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': true
+      },
       body: JSON.stringify({
         item: todo
       })
